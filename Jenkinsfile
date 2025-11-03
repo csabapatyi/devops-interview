@@ -11,7 +11,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Cloning source repository"
-                git branch: 'main', url: 'https://github.com/Tech-Modernization/devops-interview.git'
+                git branch: 'main', url: 'https://github.com/csabapatyi/devops-interview.git'
             }
         }
 
