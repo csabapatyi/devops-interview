@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { label 'mac' }
 
     environment {
         IMAGE_NAME = "fastapi-demo"
