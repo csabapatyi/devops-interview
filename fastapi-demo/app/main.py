@@ -12,11 +12,13 @@ logger = logging.getLogger(__name__)
 # Initialize tracing (connects to OTel Collector)
 setup_tracing(service_name="fastapi-demo")
 
+
 @app.get("/hello")
 def hello():
     """Simple example endpoint"""
     logger.info("Received /hello request")
     return {"message": "Hello from FastAPI with OpenTelemetry!"}
+
 
 @app.get("/health")
 def health():
