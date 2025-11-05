@@ -15,12 +15,54 @@ pipeline {
             }
         }
 
+        stage('Python Linting') {
+            steps {
+                dir('fastapi-demo') {
+                    echo "Running flake8 linting"
+                    sh '''
+                        python3 -m pip install --upgrade pip setuptools wheel
+                        pip install flake8
+                        echo "🔍 Running flake8 lint..."
+                        flake8 --ignore=E501,W503,E203 .
+                    '''
+                }
+            }
+        }
+
+        stage('Static Code Analysis') {
+            steps {
+                dir('fastapi-demo') {
+                    echo "Running Bandit static analysis"
+                    sh '''
+                        pip install bandit
+                        echo "🕵️♂️ Scanning for security issues..."
+                        bandit -r app -ll -ii
+                    '''
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 dir('fastapi-demo') {
                     echo "Building Docker image '${IMAGE_NAME}' using Podman"
                     sh 'podman build -t ${IMAGE_NAME}:latest .'
                 }
+            }
+        }
+
+        stage('Docker Image Scan') {
+            steps {
+                echo "Scanning Docker image for vulnerabilities (Trivy)"
+                sh '''
+                    if ! command -v trivy >/dev/null 2>&1; then
+                        echo "Installing Trivy scanner..."
+                        brew install trivy || \
+                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+                    fi
+                    echo "🔍 Running image scan..."
+                    trivy image --severity HIGH,CRITICAL ${IMAGE_NAME}:latest || true
+                '''
             }
         }
 
@@ -54,6 +96,7 @@ pipeline {
             echo "❌ Pipeline failed."
         }
         always {
+            echo "📋 Running cleanup summary"
             sh 'podman ps'
         }
     }
